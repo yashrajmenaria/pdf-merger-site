@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+        integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+
+    <title>pdf merger tool</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+</head>
+
+<body>
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow-lg">
+                    <div class="card-body">
+                        <h2 class="card-title text-center mb-4">PdfX - Your Favourite PDF Merger Tool</h2>
+                        <form method="post" action="/merge" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label for="pdfFiles"><strong>Select one or more PDF files to merge</strong></label>
+                                <input type="file" name="pdfs" class="form-control-file" id="pdfFiles" multiple
+                                    accept=".pdf">
+                                <small class="form-text text-muted">You can select as many PDF files as you want. Hold
+                                    Ctrl (Cmd on Mac) to select multiple files.</small>
+                                <ul id="fileList" class="list-group mt-3"></ul>
+                            </div>
+                            <button class="btn btn-success btn-block py-2" type="submit"><strong>Merge
+                                    PDFs</strong></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const input = document.getElementById('pdfFiles');
+        const fileList = document.getElementById('fileList');
+        let selectedFiles = [];
+
+        input.addEventListener('change', () => {
+            selectedFiles = Array.from(input.files);
+            renderFileList();
+            updateFileInput();
+        });
+
+        function renderFileList() {
+            fileList.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.setAttribute('data-index', index);
+                li.innerHTML = `
+                <span class="drag-handle mr-3" style="cursor: grab;">&#9776;</span>
+                <span class="flex-grow-1">${file.name}</span>
+                <button type="button" class="btn btn-sm btn-danger ml-3" onclick="removeFile(${index})">Remove</button>
+            `;
+                fileList.appendChild(li);
+            });
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            renderFileList();
+            updateFileInput();
+        }
+
+        function updateFileInput() {
+            const dataTransfer = new DataTransfer();
+            selectedFiles.forEach(file => dataTransfer.items.add(file));
+            input.files = dataTransfer.files;
+        }
+
+        new Sortable(fileList, {
+            animation: 150,
+            handle: '.drag-handle',
+            onEnd: () => {
+                const newOrder = Array.from(fileList.children).map(li => parseInt(li.getAttribute('data-index')));
+                selectedFiles = newOrder.map(i => selectedFiles[i]);
+                renderFileList(); // re-render to update data-index
+                updateFileInput();
+            }
+        });
+
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
+        crossorigin="anonymous"></script>
+</body>
+</html>
